@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Android Java — Plonkec</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e12;
+    --surface: #16161d;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #a78bfa;
+    --accent2: #34d399;
+    --accent3: #fb923c;
+    --accent4: #f472b6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0a10;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: white; color: #111; font-size: 11px; }
+    .header { background: #4A0080 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { break-inside: avoid; }
+    .card { border: 1px solid #ccc !important; background: #f9f9f9 !important; }
+    pre { background: #f0f0f0 !important; color: #111 !important; border: 1px solid #ddd !important; }
+    .tag { background: #e0d4ff !important; color: #4A0080 !important; }
+    .warn { background: #fff3cd !important; color: #856404 !important; }
+    .ok { background: #d1fae5 !important; color: #065f46 !important; }
+    .nav { display: none; }
+    .section-title { color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a0533 0%, #2d1457 50%, #1a0533 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 28px 32px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -20%;
+    width: 60%; height: 200%;
+    background: radial-gradient(ellipse, rgba(167,139,250,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .tag {
+    background: rgba(167,139,250,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(167,139,250,0.3);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+  }
+
+  .nav {
+    position: sticky;
+    top: 0;
+    background: rgba(14,14,18,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    z-index: 100;
+  }
+
+  .nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .nav a:hover { color: var(--accent); background: rgba(167,139,250,0.1); }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .section.full { grid-column: 1 / -1; }
+
+  .section-title {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .s1 .section-title { background: linear-gradient(90deg, #1a0a2e, #2d1457); color: var(--accent); border-bottom: 1px solid rgba(167,139,250,0.3); }
+  .s2 .section-title { background: linear-gradient(90deg, #0a1f18, #0d3326); color: var(--accent2); border-bottom: 1px solid rgba(52,211,153,0.3); }
+  .s3 .section-title { background: linear-gradient(90deg, #1f150a, #3a2010); color: var(--accent3); border-bottom: 1px solid rgba(251,146,60,0.3); }
+  .s4 .section-title { background: linear-gradient(90deg, #1f0a18, #3a1030); color: var(--accent4); border-bottom: 1px solid rgba(244,114,182,0.3); }
+
+  .section-body { padding: 14px 16px; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 8px 0;
+    color: #c9d1d9;
+  }
+
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm { color: #484f58; font-style: italic; }
+  .num { color: #79c0ff; }
+  .cls { color: #ffa657; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 8px 0;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 7px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(42,42,56,0.5);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  code {
+    background: var(--code-bg);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .warn {
+    background: rgba(251,146,60,0.1);
+    border: 1px solid rgba(251,146,60,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--accent3);
+    margin: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .ok {
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--accent2);
+    margin: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 12px 0 6px;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.8;
+  }
+
+  h3:first-child { margin-top: 0; }
+
+  p { margin: 6px 0; font-size: 13px; color: #94a3b8; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .color-demo {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  .color-box {
+    width: 50px; height: 30px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .footer {
+    grid-column: 1 / -1;
+    background: linear-gradient(90deg, #1a0533, #0a1f18);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer strong { color: var(--accent3); }
+
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr; }
+    .section.full { grid-column: 1; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📱 Android Java — Plonkec</h1>
+  <p>Šolski center Kranj · Srednja tehniška šola · Računalništvo</p>
+  <div class="tags">
+    <span class="tag">ScrollView</span>
+    <span class="tag">SharedPreferences</span>
+    <span class="tag">CalendarView</span>
+    <span class="tag">BroadcastReceiver</span>
+    <span class="tag">ListView</span>
+    <span class="tag">Spinner</span>
+    <span class="tag">ProgressBar</span>
+    <span class="tag">SeekBar</span>
+    <span class="tag">CheckBox</span>
+    <span class="tag">Switch</span>
+    <span class="tag">WebView</span>
+    <span class="tag">Gnezdeni meni</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#layout">Layout</a>
+  <a href="#ui">UI Elementi</a>
+  <a href="#seekbar">SeekBar</a>
+  <a href="#calendar">CalendarView</a>
+  <a href="#prefs">SharedPreferences</a>
+  <a href="#listview">ListView</a>
+  <a href="#spinner">Spinner</a>
+  <a href="#progressbar">ProgressBar</a>
+  <a href="#menu">Gnezdeni meni</a>
+  <a href="#broadcast">BroadcastReceiver</a>
+  <a href="#baterija">Baterija</a>
+  <a href="#webview">WebView</a>
+  <a href="#manifest">Manifest</a>
+  <a href="#skelet">Skelet</a>
+</nav>
+
+<div class="container">
+
+  <!-- LAYOUT -->
+  <div class="section s1 full" id="layout">
+    <div class="section-title">📐 1. Layout struktura (XML)</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>ScrollView — osnovno pravilo</h3>
+          <p>Omogoča scrollanje ko je vsebina predolga. Ima lahko samo <strong>ENEGA otroka</strong>!</p>
+          <pre><span class="kw">&lt;ScrollView&gt;</span>
+  <span class="kw">&lt;LinearLayout</span>
+    <span class="str">android:orientation=</span><span class="str">"vertical"</span><span class="kw">&gt;</span>
+    <span class="cm">&lt;!-- VSI elementi gredo sem --&gt;</span>
+    <span class="kw">&lt;CalendarView/&gt;</span>
+    <span class="kw">&lt;RadioGroup/&gt;</span>
+    <span class="kw">&lt;SeekBar/&gt;</span>
+    <span class="kw">&lt;Button/&gt;</span>
+    <span class="kw">&lt;ListView/&gt;</span>
+  <span class="kw">&lt;/LinearLayout&gt;</span>
+<span class="kw">&lt;/ScrollView&gt;</span></pre>
+          <div class="warn">⚠ ScrollView = 1 otrok VEDNO. Več elementov → LinearLayout noter.</div>
+        </div>
+        <div>
+          <h3>Vrstni red elementov po nalogah</h3>
+          <table>
+            <tr><th>#</th><th>Element</th><th>Komentar</th></tr>
+            <tr><td>1</td><td><code>CalendarView</code></td><td>Na vrh</td></tr>
+            <tr><td>2</td><td><code>RadioGroup</code></td><td>Prioriteta / Status</td></tr>
+            <tr><td>3</td><td><code>SeekBar / Switch / CheckBox</code></td><td>Vrednosti</td></tr>
+            <tr><td>4</td><td><code>Button</code></td><td>SHRANI / DODAJ</td></tr>
+            <tr><td>5</td><td><code>ListView / WebView</code></td><td>Na dno</td></tr>
+          </table>
+          <div class="ok">✅ Ta vrstni red se ponavlja v VSEH nalogah!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI ELEMENTI -->
+  <div class="section s2 full" id="ui">
+    <div class="section-title">🎛 2. UI Elementi — ključne metode</div>
+    <div class="section-body">
+      <table>
+        <tr><th>Element</th><th>Metoda</th><th>Opis</th></tr>
+        <tr><td><code>SeekBar</code></td><td><code>getProgress()</code></td><td>Vrne 0–max. Za 1–10: max=9, +1 v kodi</td></tr>
+        <tr><td><code>CalendarView</code></td><td><code>getDate()</code></td><td>Datum v milisekundah</td></tr>
+        <tr><td><code>CalendarView</code></td><td><code>setOnDateChangeListener</code></td><td>year, month(+1!), dayOfMonth</td></tr>
+        <tr><td><code>RadioButton</code></td><td><code>isChecked()</code></td><td>true če je izbran</td></tr>
+        <tr><td><code>Switch</code></td><td><code>isChecked() / setChecked(b)</code></td><td>Branje / nastavljanje</td></tr>
+        <tr><td><code>CheckBox</code></td><td><code>isChecked()</code></td><td>true če je označen</td></tr>
+        <tr><td><code>EditText</code></td><td><code>getText().toString()</code></td><td>Prebere besedilo</td></tr>
+        <tr><td><code>ProgressBar</code></td><td><code>setProgress(int)</code></td><td>Nastavi vrednost (0–max)</td></tr>
+        <tr><td><code>Spinner</code></td><td><code>getSelectedItem().toString()</code></td><td>Prebere izbrano vrednost</td></tr>
+        <tr><td><code>ListView</code></td><td><code>setAdapter(adapter)</code></td><td>Poveže seznam z adapterjem</td></tr>
+        <tr><td><code>WebView</code></td><td><code>loadUrl("https://...")</code></td><td>Naloži spletno stran</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SEEKBAR -->
+  <div class="section s3" id="seekbar">
+    <div class="section-title">🎚 3. SeekBar</div>
+    <div class="section-body">
+      <h3>XML</h3>
+      <pre><span class="kw">&lt;SeekBar</span>
+  <span class="str">android:id=</span><span class="str">"@+id/seekBar"</span>
+  <span class="str">android:max=</span><span class="str">"9"</span>   <span class="cm">// za 1-10</span>
+  <span class="str">android:progress=</span><span class="str">"0"</span> <span class="kw">/&gt;</span></pre>
+      <h3>Java</h3>
+      <pre>seekBar.<span class="fn">setOnSeekBarChangeListener</span>(
+  <span class="kw">new</span> <span class="cls">SeekBar.OnSeekBarChangeListener</span>() {
+  <span class="kw">@Override public void</span> <span class="fn">onProgressChanged</span>(<span class="cls">SeekBar</span> s, <span class="kw">int</span> p, <span class="kw">boolean</span> f) {}
+  <span class="kw">@Override public void</span> <span class="fn">onStartTrackingTouch</span>(<span class="cls">SeekBar</span> s) {}
+  <span class="kw">@Override public void</span> <span class="fn">onStopTrackingTouch</span>(<span class="cls">SeekBar</span> s) {
+    prefs.<span class="fn">edit</span>().<span class="fn">putInt</span>(<span class="str">"tez"</span>, s.<span class="fn">getProgress</span>()).<span class="fn">apply</span>();
+  }
+});
+<span class="kw">int</span> vrednost = seekBar.<span class="fn">getProgress</span>() + <span class="num">1</span>; <span class="cm">// +1 ker gre od 0!</span></pre>
+      <div class="warn">⚠ max="9" + getProgress()+1 = vrednosti 1–10</div>
+    </div>
+  </div>
+
+  <!-- CALENDARVIEW -->
+  <div class="section s1" id="calendar">
+    <div class="section-title">📅 4. CalendarView</div>
+    <div class="section-body">
+      <pre>calendarView.<span class="fn">setOnDateChangeListener</span>(
+  (view, year, month, dayOfMonth) -> {
+  <span class="cm">// POZOR: month je 0-indexed!</span>
+  <span class="cm">// Januar=0, December=11</span>
+  <span class="cls">String</span> datum = dayOfMonth + <span class="str">"."</span>
+    + (month + <span class="num">1</span>) + <span class="str">"."</span> + year;
+
+  <span class="cls">Toast</span>.<span class="fn">makeText</span>(
+    <span class="kw">this</span>, <span class="str">"Datum: "</span> + datum,
+    <span class="cls">Toast</span>.LENGTH_SHORT).<span class="fn">show</span>();
+});</pre>
+      <div class="warn">⚠ month + 1 — VEDNO! Najpogostejša napaka!</div>
+      <h3>Datum iz ms v String</h3>
+      <pre><span class="cls">SimpleDateFormat</span> sdf =
+  <span class="kw">new</span> <span class="cls">SimpleDateFormat</span>(<span class="str">"d.M.yyyy"</span>, <span class="cls">Locale</span>.getDefault());
+<span class="cls">String</span> datStr = sdf.<span class="fn">format</span>(<span class="kw">new</span> <span class="cls">Date</span>(izbraniDatum));</pre>
+    </div>
+  </div>
+
+  <!-- SHAREDPREFERENCES -->
+  <div class="section s2 full" id="prefs">
+    <div class="section-title">💾 5. SharedPreferences — trajno shranjevanje</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>Inicializacija (v onCreate)</h3>
+          <pre><span class="cls">SharedPreferences</span> prefs =
+  <span class="fn">getSharedPreferences</span>(<span class="str">"ImeDataoteke"</span>, MODE_PRIVATE);</pre>
+          <h3>Shranjevanje (ob kliku SHRANI)</h3>
+          <pre><span class="cls">SharedPreferences.Editor</span> editor = prefs.<span class="fn">edit</span>();
+editor.<span class="fn">putString</span>(<span class="str">"ime"</span>, editText.<span class="fn">getText</span>().<span class="fn">toString</span>());
+editor.<span class="fn">putBoolean</span>(<span class="str">"obd"</span>, mojSwitch.<span class="fn">isChecked</span>());
+editor.<span class="fn">putInt</span>(<span class="str">"tez"</span>, seekBar.<span class="fn">getProgress</span>());
+editor.<span class="fn">apply</span>(); <span class="cm">// OBVEZNO!</span></pre>
+        </div>
+        <div>
+          <h3>Branje (v onCreate — naloži ob zagonu)</h3>
+          <pre><span class="cls">String</span> ime = prefs.<span class="fn">getString</span>(<span class="str">"ime"</span>, <span class="str">""</span>);
+<span class="kw">boolean</span> obd = prefs.<span class="fn">getBoolean</span>(<span class="str">"obd"</span>, <span class="kw">false</span>);
+<span class="kw">int</span> tez = prefs.<span class="fn">getInt</span>(<span class="str">"tez"</span>, <span class="num">0</span>);
+
+<span class="cm">// Nastavi UI:</span>
+editText.<span class="fn">setText</span>(ime);
+mojSwitch.<span class="fn">setChecked</span>(obd);
+seekBar.<span class="fn">setProgress</span>(tez);</pre>
+          <h3>Tipi</h3>
+          <table>
+            <tr><th>put/get</th><th>Za</th></tr>
+            <tr><td><code>String</code></td><td>EditText, besedilo</td></tr>
+            <tr><td><code>Boolean</code></td><td>Switch, CheckBox</td></tr>
+            <tr><td><code>Int</code></td><td>SeekBar, številke</td></tr>
+            <tr><td><code>Float</code></td><td>decimalna števila</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="warn">⚠ editor.apply() je OBVEZNO na koncu — brez tega se podatki NE shranijo!</div>
+    </div>
+  </div>
+
+  <!-- LISTVIEW -->
+  <div class="section s3" id="listview">
+    <div class="section-title">📋 6. ListView + ArrayAdapter</div>
+    <div class="section-body">
+      <pre><span class="cm">// Inicializacija:</span>
+<span class="cls">ArrayList</span>&lt;<span class="cls">String</span>&gt; seznam = <span class="kw">new</span> <span class="cls">ArrayList</span>&lt;&gt;();
+<span class="cls">ArrayAdapter</span>&lt;<span class="cls">String</span>&gt; adapter =
+  <span class="kw">new</span> <span class="cls">ArrayAdapter</span>&lt;&gt;(<span class="kw">this</span>,
+    android.R.layout.simple_list_item_1, seznam);
+listView.<span class="fn">setAdapter</span>(adapter);
+
+<span class="cm">// Dodaj:</span>
+seznam.<span class="fn">add</span>(<span class="str">"Novo opravilo"</span>);
+adapter.<span class="fn">notifyDataSetChanged</span>(); <span class="cm">// OBVEZNO!</span>
+
+<span class="cm">// Izbriši:</span>
+seznam.<span class="fn">remove</span>(index);
+adapter.<span class="fn">notifyDataSetChanged</span>();</pre>
+      <h3>ContextMenu (dolg pritisk → izbriši)</h3>
+      <pre><span class="cm">// v onCreate:</span>
+<span class="fn">registerForContextMenu</span>(listView);
+
+<span class="kw">@Override public void</span> <span class="fn">onCreateContextMenu</span>(<span class="cls">ContextMenu</span> menu,
+    <span class="cls">View</span> v, <span class="cls">ContextMenu.ContextMenuInfo</span> info) {
+  <span class="kw">super</span>.<span class="fn">onCreateContextMenu</span>(menu, v, info);
+  <span class="cls">AdapterView.AdapterContextMenuInfo</span> i =
+    (<span class="cls">AdapterView.AdapterContextMenuInfo</span>) info;
+  izbraniIndex = i.position;
+  menu.<span class="fn">add</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">0</span>, <span class="str">"Izbriši"</span>);
+}
+
+<span class="kw">@Override public boolean</span> <span class="fn">onContextItemSelected</span>(<span class="cls">MenuItem</span> item) {
+  <span class="kw">if</span> (item.<span class="fn">getItemId</span>() == <span class="num">1</span>) {
+    seznam.<span class="fn">remove</span>(izbraniIndex);
+    adapter.<span class="fn">notifyDataSetChanged</span>();
+  }
+  <span class="kw">return super</span>.<span class="fn">onContextItemSelected</span>(item);
+}</pre>
+    </div>
+  </div>
+
+  <!-- SPINNER -->
+  <div class="section s4" id="spinner">
+    <div class="section-title">🔽 7. Spinner (dropdown)</div>
+    <div class="section-body">
+      <h3>XML</h3>
+      <pre><span class="kw">&lt;Spinner</span>
+  <span class="str">android:id=</span><span class="str">"@+id/spinner"</span>
+  <span class="str">android:layout_width=</span><span class="str">"match_parent"</span>
+  <span class="str">android:layout_height=</span><span class="str">"wrap_content"</span> <span class="kw">/&gt;</span></pre>
+      <h3>Java</h3>
+      <pre><span class="cls">Spinner</span> spinner = <span class="fn">findViewById</span>(R.id.spinner);
+
+<span class="cm">// Podatki za dropdown:</span>
+<span class="cls">String</span>[] moznosti = {<span class="str">"Nizka"</span>, <span class="str">"Srednja"</span>, <span class="str">"Visoka"</span>};
+<span class="cls">ArrayAdapter</span>&lt;<span class="cls">String</span>&gt; adapter = <span class="kw">new</span> <span class="cls">ArrayAdapter</span>&lt;&gt;(
+  <span class="kw">this</span>,
+  android.R.layout.simple_spinner_item,
+  moznosti);
+adapter.<span class="fn">setDropDownViewResource</span>(
+  android.R.layout.simple_spinner_dropdown_item);
+spinner.<span class="fn">setAdapter</span>(adapter);
+
+<span class="cm">// Branje izbrane vrednosti:</span>
+<span class="cls">String</span> izbrano =
+  spinner.<span class="fn">getSelectedItem</span>().<span class="fn">toString</span>();
+
+<span class="cm">// Listener:</span>
+spinner.<span class="fn">setOnItemSelectedListener</span>(
+  <span class="kw">new</span> <span class="cls">AdapterView.OnItemSelectedListener</span>() {
+  <span class="kw">@Override public void</span> <span class="fn">onItemSelected</span>(
+      <span class="cls">AdapterView</span>&lt;?&gt; p, <span class="cls">View</span> v, <span class="kw">int</span> pos, <span class="kw">long</span> id) {
+    <span class="cls">String</span> izbor = p.<span class="fn">getItemAtPosition</span>(pos).<span class="fn">toString</span>();
+  }
+  <span class="kw">@Override public void</span> <span class="fn">onNothingSelected</span>(<span class="cls">AdapterView</span>&lt;?&gt; p) {}
+});</pre>
+    </div>
+  </div>
+
+  <!-- PROGRESSBAR -->
+  <div class="section s1" id="progressbar">
+    <div class="section-title">⏳ 8. ProgressBar</div>
+    <div class="section-body">
+      <h3>XML</h3>
+      <pre><span class="cm">&lt;!-- Horizontalni (za vrednosti) --&gt;</span>
+<span class="kw">&lt;ProgressBar</span>
+  <span class="str">android:id=</span><span class="str">"@+id/progressBar"</span>
+  <span class="str">style=</span><span class="str">"?android:attr/progressBarStyleHorizontal"</span>
+  <span class="str">android:max=</span><span class="str">"100"</span>
+  <span class="str">android:progress=</span><span class="str">"50"</span>
+  <span class="str">android:layout_width=</span><span class="str">"match_parent"</span>
+  <span class="str">android:layout_height=</span><span class="str">"wrap_content"</span> <span class="kw">/&gt;</span>
+
+<span class="cm">&lt;!-- Krog (nalaganje) --&gt;</span>
+<span class="kw">&lt;ProgressBar</span>
+  <span class="str">android:layout_width=</span><span class="str">"wrap_content"</span>
+  <span class="str">android:layout_height=</span><span class="str">"wrap_content"</span> <span class="kw">/&gt;</span></pre>
+      <h3>Java</h3>
+      <pre><span class="cls">ProgressBar</span> pb = <span class="fn">findViewById</span>(R.id.progressBar);
+pb.<span class="fn">setProgress</span>(<span class="num">75</span>);      <span class="cm">// nastavi vrednost</span>
+pb.<span class="fn">setMax</span>(<span class="num">100</span>);          <span class="cm">// nastavi max</span>
+<span class="kw">int</span> val = pb.<span class="fn">getProgress</span>(); <span class="cm">// preberi</span></pre>
+      <div class="ok">✅ Razlika: SeekBar = uporabnik premika | ProgressBar = samo prikaz</div>
+    </div>
+  </div>
+
+  <!-- GNEZDENI MENI -->
+  <div class="section s2 full" id="menu">
+    <div class="section-title">📂 9. Gnezdeni meni (Options Menu)</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>1. Ustvari XML meni (res/menu/menu_main.xml)</h3>
+          <pre><span class="kw">&lt;menu</span> <span class="str">xmlns:android=</span><span class="str">"..."</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;item</span>
+    <span class="str">android:id=</span><span class="str">"@+id/menuUredi"</span>
+    <span class="str">android:title=</span><span class="str">"Uredi"</span><span class="kw">&gt;</span>
+    <span class="cm">&lt;!-- Gnezdeni podmeni --&gt;</span>
+    <span class="kw">&lt;menu&gt;</span>
+      <span class="kw">&lt;item</span>
+        <span class="str">android:id=</span><span class="str">"@+id/menuIzbris"</span>
+        <span class="str">android:title=</span><span class="str">"Izbriši"</span> <span class="kw">/&gt;</span>
+      <span class="kw">&lt;item</span>
+        <span class="str">android:id=</span><span class="str">"@+id/menuPosodobi"</span>
+        <span class="str">android:title=</span><span class="str">"Posodobi"</span> <span class="kw">/&gt;</span>
+    <span class="kw">&lt;/menu&gt;</span>
+  <span class="kw">&lt;/item&gt;</span>
+  <span class="kw">&lt;item</span>
+    <span class="str">android:id=</span><span class="str">"@+id/menuNastavitve"</span>
+    <span class="str">android:title=</span><span class="str">"Nastavitve"</span> <span class="kw">/&gt;</span>
+<span class="kw">&lt;/menu&gt;</span></pre>
+        </div>
+        <div>
+          <h3>2. Java koda v MainActivity</h3>
+          <pre><span class="cm">// Naloži meni (zgornja vrstica)</span>
+<span class="kw">@Override
+public boolean</span> <span class="fn">onCreateOptionsMenu</span>(<span class="cls">Menu</span> menu) {
+  <span class="fn">getMenuInflater</span>().<span class="fn">inflate</span>(
+    R.menu.menu_main, menu);
+  <span class="kw">return true</span>;
+}
+
+<span class="cm">// Ob kliku na element menija</span>
+<span class="kw">@Override
+public boolean</span> <span class="fn">onOptionsItemSelected</span>(<span class="cls">MenuItem</span> item) {
+  <span class="kw">int</span> id = item.<span class="fn">getItemId</span>();
+  <span class="kw">if</span> (id == R.id.menuIzbris) {
+    <span class="cm">// izvedi brisanje</span>
+    <span class="kw">return true</span>;
+  } <span class="kw">else if</span> (id == R.id.menuNastavitve) {
+    <span class="cm">// odpri nastavitve</span>
+    <span class="kw">return true</span>;
+  }
+  <span class="kw">return super</span>.<span class="fn">onOptionsItemSelected</span>(item);
+}</pre>
+          <div class="ok">✅ Gnezdeni meni = meni znotraj menija (submenu)</div>
+          <div class="warn">⚠ Mapa: app/res/menu/ (ustvari jo če ne obstaja)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BROADCASTRECEIVER -->
+  <div class="section s3 full" id="broadcast">
+    <div class="section-title">📻 10. BroadcastReceiver — sistemski dogodki</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>Struktura (na vrhu razreda, izven onCreate)</h3>
+          <pre><span class="cls">BroadcastReceiver</span> mojReceiver =
+  <span class="kw">new</span> <span class="cls">BroadcastReceiver</span>() {
+  <span class="kw">@Override
+  public void</span> <span class="fn">onReceive</span>(<span class="cls">Context</span> ctx, <span class="cls">Intent</span> intent) {
+    <span class="cls">String</span> action = intent.<span class="fn">getAction</span>();
+
+    <span class="kw">if</span> (<span class="cls">Intent</span>.ACTION_AIRPLANE_MODE_CHANGED
+        .<span class="fn">equals</span>(action)) {
+      <span class="kw">boolean</span> on =
+        intent.<span class="fn">getBooleanExtra</span>(<span class="str">"state"</span>, <span class="kw">false</span>);
+      <span class="cls">Toast</span>.<span class="fn">makeText</span>(ctx,
+        on ? <span class="str">"✈ ON"</span> : <span class="str">"✈ OFF"</span>,
+        <span class="cls">Toast</span>.LENGTH_SHORT).<span class="fn">show</span>();
+    }
+  }
+};</pre>
+        </div>
+        <div>
+          <h3>Registracija in odjava</h3>
+          <pre><span class="kw">@Override
+protected void</span> <span class="fn">onResume</span>() {
+  <span class="kw">super</span>.<span class="fn">onResume</span>();
+  <span class="cls">IntentFilter</span> filter =
+    <span class="kw">new</span> <span class="cls">IntentFilter</span>();
+  filter.<span class="fn">addAction</span>(
+    <span class="cls">Intent</span>.ACTION_AIRPLANE_MODE_CHANGED);
+  <span class="fn">registerReceiver</span>(mojReceiver, filter);
+}
+
+<span class="kw">@Override
+protected void</span> <span class="fn">onPause</span>() {
+  <span class="kw">super</span>.<span class="fn">onPause</span>();
+  <span class="fn">unregisterReceiver</span>(mojReceiver); <span class="cm">// OBVEZNO!</span>
+}</pre>
+          <h3>Sistemski dogodki</h3>
+          <table>
+            <tr><th>Konstanta</th><th>Kdaj</th></tr>
+            <tr><td><code>ACTION_AIRPLANE_MODE_CHANGED</code></td><td>Letalski način</td></tr>
+            <tr><td><code>ACTION_POWER_CONNECTED</code></td><td>Polnilec priključen</td></tr>
+            <tr><td><code>ACTION_POWER_DISCONNECTED</code></td><td>Polnilec odklopljen</td></tr>
+            <tr><td><code>ACTION_BATTERY_CHANGED</code></td><td>Sprememba baterije</td></tr>
+          </table>
+          <div class="warn">⚠ unregisterReceiver v onPause — OBVEZNO! Sicer memory leak!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BATERIJA -->
+  <div class="section s4" id="baterija">
+    <div class="section-title">🔋 11. Baterija — barvna logika</div>
+    <div class="section-body">
+      <h3>Branje nivoja</h3>
+      <pre><span class="kw">int</span> level = intent.<span class="fn">getIntExtra</span>(<span class="str">"level"</span>, <span class="num">0</span>);
+<span class="kw">int</span> scale = intent.<span class="fn">getIntExtra</span>(<span class="str">"scale"</span>, <span class="num">100</span>);
+<span class="kw">int</span> odstotek = (level * <span class="num">100</span>) / scale;</pre>
+      <h3>Color.rgb() — barve</h3>
+      <div class="color-demo">
+        <div class="color-box" style="background:#ff0000;color:white">R:255<br>G:0</div>
+        <div class="color-box" style="background:#ffff00;color:#333">R:255<br>G:255</div>
+        <div class="color-box" style="background:#00ff00;color:#333">R:0<br>G:255</div>
+        <div class="color-box" style="background:#ffffff;color:#333">255<br>255<br>255</div>
+        <div class="color-box" style="background:#000000;color:white">0<br>0<br>0</div>
+      </div>
+      <h3>Gradient formula</h3>
+      <pre><span class="kw">int</span> r, g;
+<span class="kw">if</span> (odstotek <= <span class="num">50</span>) {
+  r = <span class="num">255</span>;
+  g = (<span class="kw">int</span>)(odstotek / <span class="num">50.0</span> * <span class="num">255</span>);
+} <span class="kw">else</span> {
+  g = <span class="num">255</span>;
+  r = (<span class="kw">int</span>)((<span class="num">100</span> - odstotek) / <span class="num">50.0</span> * <span class="num">255</span>);
+}
+layout.<span class="fn">setBackgroundColor</span>(<span class="cls">Color</span>.<span class="fn">rgb</span>(r, g, <span class="num">0</span>));</pre>
+    </div>
+  </div>
+
+  <!-- WEBVIEW -->
+  <div class="section s1" id="webview">
+    <div class="section-title">🌐 12. WebView</div>
+    <div class="section-body">
+      <h3>XML</h3>
+      <pre><span class="kw">&lt;WebView</span>
+  <span class="str">android:id=</span><span class="str">"@+id/webView"</span>
+  <span class="str">android:layout_width=</span><span class="str">"match_parent"</span>
+  <span class="str">android:layout_height=</span><span class="str">"250dp"</span> <span class="kw">/&gt;</span></pre>
+      <h3>Java</h3>
+      <pre><span class="cls">WebView</span> webView = <span class="fn">findViewById</span>(R.id.webView);
+webView.<span class="fn">getSettings</span>().<span class="fn">setJavaScriptEnabled</span>(<span class="kw">true</span>);
+webView.<span class="fn">loadUrl</span>(<span class="str">"https://www.google.com"</span>);</pre>
+      <h3>Manifest — OBVEZNO!</h3>
+      <pre><span class="kw">&lt;uses-permission</span>
+  <span class="str">android:name=</span><span class="str">"android.permission.INTERNET"</span> <span class="kw">/&gt;</span></pre>
+      <div class="warn">⚠ Brez INTERNET dovoljenja WebView ne deluje!</div>
+    </div>
+  </div>
+
+  <!-- MANIFEST -->
+  <div class="section s2" id="manifest">
+    <div class="section-title">📄 13. AndroidManifest.xml</div>
+    <div class="section-body">
+      <table>
+        <tr><th>Kdaj</th><th>Kar dodaš</th></tr>
+        <tr><td>WebView (internet)</td><td><code>&lt;uses-permission android:name= "android.permission.INTERNET"/&gt;</code></td></tr>
+        <tr><td>BroadcastReceiver dinamični</td><td>NIČ — registriraš v kodi (onResume/onPause)</td></tr>
+        <tr><td>BroadcastReceiver statični</td><td><code>&lt;receiver android:name=".MojReceiver"&gt;</code> v &lt;application&gt;</td></tr>
+      </table>
+      <pre><span class="kw">&lt;manifest&gt;</span>
+  <span class="cm">&lt;!-- Dovoljenja gredo PRED &lt;application&gt; --&gt;</span>
+  <span class="kw">&lt;uses-permission</span>
+    <span class="str">android:name=</span><span class="str">"android.permission.INTERNET"</span><span class="kw">/&gt;</span>
+
+  <span class="kw">&lt;application ...&gt;</span>
+    <span class="kw">&lt;activity</span> <span class="str">android:name=</span><span class="str">".MainActivity"</span>
+      <span class="str">android:exported=</span><span class="str">"true"</span><span class="kw">&gt;</span>
+      <span class="kw">&lt;intent-filter&gt;</span>
+        <span class="kw">&lt;action</span> <span class="str">android:name=</span><span class="str">"android.intent.action.MAIN"</span><span class="kw">/&gt;</span>
+        <span class="kw">&lt;category</span> <span class="str">android:name=</span><span class="str">"android.intent.category.LAUNCHER"</span><span class="kw">/&gt;</span>
+      <span class="kw">&lt;/intent-filter&gt;</span>
+    <span class="kw">&lt;/activity&gt;</span>
+  <span class="kw">&lt;/application&gt;</span>
+<span class="kw">&lt;/manifest&gt;</span></pre>
+    </div>
+  </div>
+
+  <!-- SKELET -->
+  <div class="section s3 full" id="skelet">
+    <div class="section-title">🏗 14. Skelet MainActivity.java — celoten vzorec</div>
+    <div class="section-body">
+      <pre><span class="kw">public class</span> <span class="cls">MainActivity</span> <span class="kw">extends</span> <span class="cls">AppCompatActivity</span> {
+
+  <span class="cm">// ── 1. Deklariraj elemente na vrhu razreda ──────────────────</span>
+  <span class="cls">CalendarView</span> calendarView; <span class="cls">SeekBar</span> seekBar; <span class="cls">ProgressBar</span> progressBar;
+  <span class="cls">RadioButton</span> radioNizka; <span class="cls">Switch</span> mojSwitch; <span class="cls">CheckBox</span> cb1;
+  <span class="cls">ListView</span> listView; <span class="cls">Spinner</span> spinner; <span class="cls">WebView</span> webView;
+  <span class="cls">SharedPreferences</span> prefs;
+  <span class="cls">ArrayList</span>&lt;<span class="cls">String</span>&gt; seznam; <span class="cls">ArrayAdapter</span>&lt;<span class="cls">String</span>&gt; adapter;
+  <span class="kw">long</span> izbraniDatum; <span class="kw">int</span> izbraniIndex = -<span class="num">1</span>;
+
+  <span class="cm">// ── 2. BroadcastReceiver (če je potreben) ───────────────────</span>
+  <span class="cls">BroadcastReceiver</span> receiver = <span class="kw">new</span> <span class="cls">BroadcastReceiver</span>() {
+    <span class="kw">@Override public void</span> <span class="fn">onReceive</span>(<span class="cls">Context</span> c, <span class="cls">Intent</span> i) { <span class="cm">/* logika */</span> }
+  };
+
+  <span class="kw">@Override
+  protected void</span> <span class="fn">onCreate</span>(<span class="cls">Bundle</span> savedInstanceState) {
+    <span class="kw">super</span>.<span class="fn">onCreate</span>(savedInstanceState);
+    <span class="fn">setContentView</span>(R.layout.activity_main);
+
+    <span class="cm">// ── 3. Poveži z XML ──────────────────────────────────────────</span>
+    calendarView = <span class="fn">findViewById</span>(R.id.calendarView);
+    seekBar      = <span class="fn">findViewById</span>(R.id.seekBar);
+    <span class="cm">// ... ostali elementi</span>
+
+    <span class="cm">// ── 4. SharedPreferences — naloži shranjene vrednosti ───────</span>
+    prefs = <span class="fn">getSharedPreferences</span>(<span class="str">"Ime"</span>, MODE_PRIVATE);
+    seekBar.<span class="fn">setProgress</span>(prefs.<span class="fn">getInt</span>(<span class="str">"tezavnost"</span>, <span class="num">0</span>));
+    mojSwitch.<span class="fn">setChecked</span>(prefs.<span class="fn">getBoolean</span>(<span class="str">"obd"</span>, <span class="kw">false</span>));
+
+    <span class="cm">// ── 5. ListView setup ────────────────────────────────────────</span>
+    seznam  = <span class="kw">new</span> <span class="cls">ArrayList</span>&lt;&gt;();
+    adapter = <span class="kw">new</span> <span class="cls">ArrayAdapter</span>&lt;&gt;(<span class="kw">this</span>,
+      android.R.layout.simple_list_item_1, seznam);
+    listView.<span class="fn">setAdapter</span>(adapter);
+
+    <span class="cm">// ── 6. CalendarView listener ─────────────────────────────────</span>
+    calendarView.<span class="fn">setOnDateChangeListener</span>((v, y, m, d) -> {
+      izbraniDatum = <span class="cm">/* pretvori v ms */</span>;
+    });
+
+    <span class="cm">// ── 7. Gumb SHRANI/DODAJ ─────────────────────────────────────</span>
+    btnShrani.<span class="fn">setOnClickListener</span>(v -> {
+      prefs.<span class="fn">edit</span>()
+        .<span class="fn">putInt</span>(<span class="str">"tezavnost"</span>, seekBar.<span class="fn">getProgress</span>())
+        .<span class="fn">putBoolean</span>(<span class="str">"obd"</span>, mojSwitch.<span class="fn">isChecked</span>())
+        .<span class="fn">apply</span>(); <span class="cm">// OBVEZNO!</span>
+    });
+
+    <span class="cm">// ── 8. ContextMenu za ListView ───────────────────────────────</span>
+    <span class="fn">registerForContextMenu</span>(listView);
+  }
+
+  <span class="cm">// ── 9. Gnezdeni meni ─────────────────────────────────────────</span>
+  <span class="kw">@Override public boolean</span> <span class="fn">onCreateOptionsMenu</span>(<span class="cls">Menu</span> menu) {
+    <span class="fn">getMenuInflater</span>().<span class="fn">inflate</span>(R.menu.menu_main, menu);
+    <span class="kw">return true</span>;
+  }
+  <span class="kw">@Override public boolean</span> <span class="fn">onOptionsItemSelected</span>(<span class="cls">MenuItem</span> item) {
+    <span class="kw">if</span> (item.<span class="fn">getItemId</span>() == R.id.menuIzbris) { <span class="cm">/* izbriši */</span> }
+    <span class="kw">return super</span>.<span class="fn">onOptionsItemSelected</span>(item);
+  }
+
+  <span class="cm">// ── 10. BroadcastReceiver registracija/odjava ────────────────</span>
+  <span class="kw">@Override protected void</span> <span class="fn">onResume</span>() {
+    <span class="kw">super</span>.<span class="fn">onResume</span>();
+    <span class="fn">registerReceiver</span>(receiver,
+      <span class="kw">new</span> <span class="cls">IntentFilter</span>(<span class="cls">Intent</span>.ACTION_AIRPLANE_MODE_CHANGED));
+  }
+  <span class="kw">@Override protected void</span> <span class="fn">onPause</span>() {
+    <span class="kw">super</span>.<span class="fn">onPause</span>();
+    <span class="fn">unregisterReceiver</span>(receiver); <span class="cm">// OBVEZNO!</span>
+  }
+}</pre>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>⚠ NAJPOGOSTEJŠE NAPAKE:</strong>
+    &nbsp;|&nbsp; month<strong>+1</strong> pri CalendarView
+    &nbsp;|&nbsp; <strong>.apply()</strong> pri SharedPreferences
+    &nbsp;|&nbsp; <strong>unregisterReceiver</strong> v onPause
+    &nbsp;|&nbsp; <strong>notifyDataSetChanged()</strong> po spremembi seznama
+    &nbsp;|&nbsp; SeekBar max=<strong>9</strong> + getProgress()<strong>+1</strong>
+    &nbsp;|&nbsp; INTERNET dovoljenje za <strong>WebView</strong>
+    &nbsp;|&nbsp; ScrollView = <strong>1 otrok</strong> (LinearLayout)
+  </div>
+
+</div>
+</body>
+</html>
