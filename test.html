@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Rešitve - Skupina A in B</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --bg: #eceff1;
+            --white: #ffffff;
+            --code-bg: #2d2d2d;
+            --menu-highlight: #d1ffd1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .group-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-top: 8px solid var(--accent);
+        }
+
+        h1, h2 { margin-top: 0; }
+        h3 { 
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Poseben stil za menuje */
+        .menu-block {
+            background: var(--menu-highlight);
+            padding: 15px;
+            border: 2px dashed #27ae60;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .menu-title {
+            font-weight: bold;
+            color: #27ae60;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .manifest-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ffeeba;
+            margin: 20px 0;
+        }
+
+        pre {
+            border-radius: 8px !important;
+            font-size: 14px !important;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { background: var(--accent); }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .group-card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Android Pisne Naloge</h1>
+    <div class="nav-links">
+        <a href="#skupina-b">Skupina B</a>
+        <a href="#skupina-a">Skupina A</a>
+    </div>
+    <p>Celotna koda in XML konfiguracije [cite: 2, 155]</p>
+	<a href="index.html" style="
+    position: fixed; 
+    top: 20px; 
+    left: 20px; 
+    background: var(--surface2); 
+    color: var(--accent); 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    border: 1px solid var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+">← DOMOV</a>
+</header>
+
+<div class="container">
+
+    <section id="skupina-b" class="group-card">
+        <h2>PISNA NALOGA – Skupina B</h2>
+        <p>Rešitev vključuje UI povezave, adapter za sezname, SharedPreferences in Broadcast Receiver za baterijo[cite: 5].</p>
+
+        <h3>1., 2., 3. in 5. točka: MainActivity.java</h3>
+        <pre><code class="language-java">
+package com.example.testb;
+import androidx.appcompat.app.AppCompatActivity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+    // 1. Uporabniški vmesnik [cite: 30]
+    EditText editPriimek;
+    CalendarView calendarView;
+    RadioGroup radioGroup;
+    RadioButton rbIzbran;
+    ProgressBar progressBar;
+    ListView listView;
+    Button btnShraniInDodaj;
+
+    // 2. Seznam in ArrayAdapter [cite: 38]
+    ArrayList&lt;String&gt; seznamVnosov;
+    ArrayAdapter&lt;String&gt; adapter;
+
+    // 5. Broadcast Receiver [cite: 41]
+    BroadcastReceiver batteryReceiver;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Povezava z XML [cite: 47]
+        editPriimek = findViewById(R.id.editPriimek);
+        calendarView = findViewById(R.id.calendarView);
+        radioGroup = findViewById(R.id.radioGroup);
+        progressBar = findViewById(R.id.progressBar);
+        listView = findViewById(R.id.listView);
+        btnShraniInDodaj = findViewById(R.id.btnShraniInDodaj);
+
+        // Inicializacija seznama [cite: 53]
+        seznamVnosov = new ArrayList&lt;&gt;();
+        adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_list_item_1, seznamVnosov);
+        listView.setAdapter(adapter);
+
+        // CalendarView izpis datuma [cite: 57]
+        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            Toast.makeText(MainActivity.this, dayOfMonth + "." + (month + 1) + "." + year, Toast.LENGTH_SHORT).show();
+        });
+
+        // 3. Shranjevanje in obnova stanja [cite: 62]
+        SharedPreferences prefs = getSharedPreferences("MojeNastavitveB", MODE_PRIVATE);
+        String shranjenPriimek = prefs.getString("priimek", "");
+        int shranjenRadioId = prefs.getInt("radioIzbira", -1);
+        editPriimek.setText(shranjenPriimek);
+        if (shranjenRadioId != -1) { radioGroup.check(shranjenRadioId); }
+
+        // Klik na gumb [cite: 71]
+        btnShraniInDodaj.setOnClickListener(v -> {
+            String priimek = editPriimek.getText().toString();
+            int selectedId = radioGroup.getCheckedRadioButtonId();
+            String radioTekst = "";
+            if (selectedId != -1) {
+                rbIzbran = findViewById(selectedId);
+                radioTekst = rbIzbran.getText().toString();
+            }
+            seznamVnosov.add(priimek + " - " + radioTekst);
+            adapter.notifyDataSetChanged();
+
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("priimek", priimek);
+            editor.putInt("radioIzbira", selectedId);
+            editor.apply();
+        });
+
+        // 5. Broadcast Receiver za baterijo [cite: 89]
+        batteryReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "Nizka baterija!", Toast.LENGTH_LONG).show();
+            }
+        };
+    }
+
+    // 4. Gnezdeni opcijski meni [cite: 97]
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menu_verzija) {
+            Toast.makeText(this, "Verzija 1.0", Toast.LENGTH_SHORT).show();
+            return true;
+        } else if (id == R.id.menu_barva) {
+            editPriimek.setTextColor(Color.RED);
+            return true;
+        } else if (id == R.id.menu_velikost) {
+            editPriimek.setTextSize(24f);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_LOW));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(batteryReceiver);
+    }
+}
+        </code></pre>
+
+        <div class="menu-block">
+            <span class="menu-title">Konfiguracija: res/menu/options_menu.xml</span>
+            <pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"&gt;
+    &lt;item android:id="@+id/menu_pisava" android:title="Pisava" app:showAsAction="never"&gt;
+        &lt;menu&gt;
+            &lt;item android:id="@+id/menu_barva" android:title="Spremeni barvo" /&gt;
+            &lt;item android:id="@+id/menu_velikost" android:title="Spremeni velikost" /&gt;
+        &lt;/menu&gt;
+    &lt;/item&gt;
+    &lt;item android:id="@+id/menu_verzija" android:title="Verzija" app:showAsAction="never" /&gt;
+&lt;/menu&gt; [cite: 132-148]
+            </code></pre>
+        </div>
+    </section>
+
+    <section id="skupina-a" class="group-card" style="border-top-color: #3498db;">
+        <h2>PISNA NALOGA – Skupina A</h2>
+        
+        <div class="manifest-warning">
+            <strong>1. točka - Opozorilo za Manifest:</strong><br>
+            Za delovanje WebView-a dodajte v <code>AndroidManifest.xml</code>: 
+            <code>&lt;uses-permission android:name="android.permission.INTERNET" /&gt;</code> [cite: 151-153]
+        </div>
+
+        <h3>MainActivity.java (WebView, SeekBar, Spinner, Context Menu)</h3>
+        <pre><code class="language-java">
+package com.example.testa;
+// ... uvozi so podobni kot pri skupini B ... [cite: 157-180]
+
+public class MainActivity extends AppCompatActivity {
+    TextView tvNaslov;
+    EditText editIme;
+    SeekBar seekBar;
+    WebView webView;
+    Spinner spinner;
+    Button btnShrani;
+    BroadcastReceiver screenReceiver;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        tvNaslov = findViewById(R.id.tvNaslov);
+        editIme = findViewById(R.id.editIme);
+        seekBar = findViewById(R.id.seekBar);
+        webView = findViewById(R.id.webView);
+        spinner = findViewById(R.id.spinner);
+        btnShrani = findViewById(R.id.btnShrani);
+
+        seekBar.setMax(10); [cite: 209]
+        webView.loadUrl("https://www.sckr.si"); [cite: 211]
+
+        // 2. Spinner in Adapter [cite: 212]
+        ArrayList&lt;String&gt; predmeti = new ArrayList&lt;&gt;();
+        predmeti.add("Matematika");
+        predmeti.add("Slovenščina");
+        predmeti.add("Programiranje");
+        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_dropdown_item, predmeti);
+        spinner.setAdapter(adapter);
+
+        registerForContextMenu(tvNaslov); [cite: 221]
+
+        // 3. Shranjevanje in obnova [cite: 222]
+        SharedPreferences prefs = getSharedPreferences("MojeNastavitveA", MODE_PRIVATE);
+        editIme.setText(prefs.getString("ime", ""));
+        seekBar.setProgress(prefs.getInt("težavnost", 0));
+
+        btnShrani.setOnClickListener(v -> {
+            String izbranPredmet = spinner.getSelectedItem().toString();
+            Toast.makeText(this, "Izbran predmet: " + izbranPredmet, Toast.LENGTH_SHORT).show();
+            
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("ime", editIme.getText().toString());
+            editor.putInt("težavnost", seekBar.getProgress());
+            editor.apply();
+        });
+
+        screenReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "Dobrodošel nazaj!", Toast.LENGTH_LONG).show();
+            }
+        };
+    }
+
+    // 4. Gnezdeni vsebinski meni - Context Menu [cite: 237]
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        View glavniZaslon = findViewById(android.R.id.content);
+        if (id == R.id.menu_barva_rdeca) {
+            glavniZaslon.setBackgroundColor(Color.RED);
+            return true;
+        } else if (id == R.id.menu_barva_modra) {
+            glavniZaslon.setBackgroundColor(Color.BLUE);
+            return true;
+        } else if (id == R.id.menu_zapri) {
+            finish();
+            return true;
+        }
+        return super.onContextItemSelected(item);
+    }
+    // ... onStart/onStop za screenReceiver ... [cite: 242-243]
+}
+        </code></pre>
+
+        <div class="menu-block" style="background: #e1f5fe; border-color: #03a9f4;">
+            <span class="menu-title" style="color: #03a9f4;">Konfiguracija: res/menu/context_menu.xml</span>
+            <pre><code class="language-xml">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;menu xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+    &lt;item android:id="@+id/menu_barva_ozadja" android:title="Barva ozadja"&gt;
+        &lt;menu&gt;
+            &lt;item android:id="@+id/menu_barva_rdeca" android:title="Rdeča barva" /&gt;
+            &lt;item android:id="@+id/menu_barva_modra" android:title="Modra barva" /&gt;
+        &lt;/menu&gt;
+    &lt;/item&gt;
+    &lt;item android:id="@+id/menu_zapri" android:title="Zapri aplikacijo" /&gt;
+&lt;/menu&gt; [cite: 245]
+            </code></pre>
+        </div>
+    </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-xml-doc.min.js"></script>
+</body>
+</html>
